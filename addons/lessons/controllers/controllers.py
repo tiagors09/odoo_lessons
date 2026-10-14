@@ -1,1 +1,1 @@
-from .lessons_api import LessonsAPI
+from . import lessons_api
