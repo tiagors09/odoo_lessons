@@ -11,7 +11,7 @@ class LessonsAPI(http.Controller):
     @http.route("/lessons/list", type="json", auth="public", methods=["POST"], csrf=False)
     def list_lessons(self, **kw):
         """Retrieve a list of all available lessons.
-        
+
         Returns:
             dict: Status, response code, and list of lessons.
         """
@@ -23,19 +23,19 @@ class LessonsAPI(http.Controller):
                 lessons_list.append({
                     "id": lesson.id,
                     "name": lesson.name,
-                    "desc": lesson.desc,
+                    "description": lesson.description,
                     "duration": lesson.duration,
                 })
-            
+
             return {
-                "status": "success", 
+                "status": "success",
                 "code": "LESSONS_FETCHED",
                 "lessons": lessons_list
             }
         except Exception as e:
             _logger.error("Error listing lessons: %s", str(e))
             return {
-                "status": "error", 
+                "status": "error",
                 "code": "INTERNAL_SERVER_ERROR",
                 "message": str(e)
             }
@@ -43,32 +43,34 @@ class LessonsAPI(http.Controller):
     @http.route("/lessons/create", type="json", auth="public", methods=["POST"], csrf=False)
     def create_lesson(self, **kw):
         """Create a new lesson record.
-        
+
         Expected JSON params:
             - name (str): Required lesson name.
-            - desc (str): Optional lesson description.
+            - description (str): Optional lesson description.
             - duration (str): Optional duration ('one_minute', 'five_minutes', 'ten_minutes').
-            
+
         Returns:
             dict: Status, response code, and created lesson details.
         """
         try:
             params = request.params or kw
-            
+
+            _logger.info(kw)
+
             name = params.get("name")
-            desc = params.get("desc")
+            description = params.get("description")
             duration = params.get("duration", "ten_minutes")
 
             if not name:
                 return {
-                    "status": "error", 
+                    "status": "error",
                     "code": "MISSING_REQUIRED_FIELD",
                     "field": "name"
                 }
 
             new_lesson = request.env["lesson.odoo"].sudo().create({
                 "name": name,
-                "desc": desc,
+                "description": description,
                 "duration": duration,
             })
 
@@ -80,14 +82,14 @@ class LessonsAPI(http.Controller):
                 "lesson": {
                     "id": new_lesson.id,
                     "name": new_lesson.name,
-                    "desc": new_lesson.desc,
+                    "description": new_lesson.description,
                     "duration": new_lesson.duration,
                 }
             }
         except Exception as e:
             _logger.error("Error creating lesson: %s", str(e))
             return {
-                "status": "error", 
+                "status": "error",
                 "code": "DATABASE_ERROR",
                 "message": str(e)
             }
@@ -95,13 +97,13 @@ class LessonsAPI(http.Controller):
     @http.route("/lessons/update", type="json", auth="public", methods=["POST"], csrf=False)
     def update_lesson(self, **kw):
         """Update an existing lesson record.
-        
+
         Expected JSON params:
             - id (int): Required lesson ID to identify the record.
             - name (str): New name (optional).
-            - desc (str): New description (optional).
+            - description (str): New description (optional).
             - duration (str): New duration (optional).
-            
+
         Returns:
             dict: Status, response code, and updated lesson details.
         """
@@ -127,8 +129,8 @@ class LessonsAPI(http.Controller):
             values_to_update = {}
             if "name" in params:
                 values_to_update["name"] = params.get("name")
-            if "desc" in params:
-                values_to_update["desc"] = params.get("desc")
+            if "description" in params:
+                values_to_update["description"] = params.get("description")
             if "duration" in params:
                 values_to_update["duration"] = params.get("duration")
 
@@ -142,7 +144,7 @@ class LessonsAPI(http.Controller):
                 "lesson": {
                     "id": lesson.id,
                     "name": lesson.name,
-                    "desc": lesson.desc,
+                    "description": lesson.description,
                     "duration": lesson.duration,
                 }
             }
@@ -157,10 +159,10 @@ class LessonsAPI(http.Controller):
     @http.route("/lessons/delete", type="json", auth="public", methods=["POST"], csrf=False)
     def delete_lesson(self, **kw):
         """Delete an existing lesson record.
-        
+
         Expected JSON params:
             - id (int): Required lesson ID to identify the record.
-            
+
         Returns:
             dict: Status and response code confirming deletion.
         """
